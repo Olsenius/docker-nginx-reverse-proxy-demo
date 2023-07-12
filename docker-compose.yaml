@@ -1,0 +1,52 @@
+services:
+  #MariaDB database
+  db:
+    image: mariadb:11.0.2
+    restart: always
+    environment:
+      MARIADB_ROOT_PASSWORD: demo
+    networks:
+      - demo
+    #Dont add ports in production. This is just while developing. 
+    #Connect to "db:3306" and it will work from the containers as they are on the same network.
+    ports:
+      - 3306:3306
+  
+  #Sample web container 1
+  web1:
+    image: nginx:1.25.1
+    container_name: web1
+    restart: always
+    volumes:
+      - ./web1/:/usr/share/nginx/html
+    networks:
+      - demo
+  
+  #Sample web container 2
+  web2:
+    image: nginx:1.25.1
+    container_name: web2
+    restart: always
+    volumes:
+      - ./web2/:/usr/share/nginx/html
+    networks:
+      - demo
+
+  #nginx reverse proxy
+  nginx:
+    image: nginx:1.25.1
+    container_name: nginx
+    restart: always
+    ports:
+      - 80:80
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    networks:
+      - demo
+    depends_on:
+      - web1
+      - web2
+
+networks:
+  demo:
+    driver: bridge
